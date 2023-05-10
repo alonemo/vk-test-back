@@ -103,7 +103,7 @@ app.delete('/posts/:id', checkAuth, PostController.remove);
 app.post('/friends/:friendId', checkAuth, UserController.addFriend);
 app.delete('/friends/:friendId', checkAuth, UserController.removeFriend);
 
-app.listen('/.netlify/functions/function_name' || 4444, err => {
+app.listen(process.env.PORT || 4444, err => {
   if (err) {
     return console.log(err);
   }
