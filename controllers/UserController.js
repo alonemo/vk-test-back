@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 import UserModel from '../models/User.js';
 
@@ -235,9 +235,9 @@ export const getFriends = async (req, res) => {
 };
 
 export const getAllUsers = async (req, res) => {
+  console.log('aaaaaa');
   try {
     const users = await UserModel.find().exec();
-
     res.json(users);
   } catch (err) {
     console.log(err);
@@ -268,3 +268,11 @@ export const getUser = async (req, res) => {
     });
   }
 };
+
+module.exports = register;
+module.exports = login;
+module.exports = addFriend;
+module.exports = removeFriend;
+module.exports = getFriends;
+module.exports = getAllUsers;
+module.exports = getUser;

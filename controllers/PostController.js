@@ -204,3 +204,11 @@ export const create = async (req, res) => {
     });
   }
 };
+
+module.exports = getAll;
+module.exports = getPostsByFriends;
+module.exports = getOne;
+module.exports = changeLikes;
+module.exports = remove;
+module.exports = getPostsByUser;
+module.exports = create;

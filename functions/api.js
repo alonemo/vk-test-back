@@ -1,10 +1,16 @@
 import express from 'express';
+// const express = require('express');
 import mongoose from 'mongoose';
+// const mongoose = require('mongoose');
 import multer from 'multer';
+// const multer = require('multer');
 import cors from 'cors';
+// const cors = require('cors');
 import fs from 'fs';
+// const fs = require('fs');
 
-const serverless = require('serverless-http');
+// const serverless = require('serverless-http');
+import serverless from 'serverless-http';
 const router = express.Router();
 const app = express();
 
@@ -68,17 +74,28 @@ router.post(
   '/auth/login',
   loginValidation,
   handleValidationErrors,
-  UserController.login
+  (req, res, err) => {
+    UserController.login(req,res);
+  }
 );
 router.post(
   '/auth/register',
   registerValidation,
   handleValidationErrors,
-  UserController.register
+  (req, res, err) => {
+    UserController.register(req, res);
+  }
 );
-router.get('/:userId', UserController.getUser);
-router.get('/friends/:userId', UserController.getFriends);
-router.get('/users/all', UserController.getAllUsers);
+router.get('/:userId', (req, res, err) => {
+  UserController.getUser(req, res);
+});
+router.get('/friends/:userId', (req, res, err) => {
+  UserController.getFriends(req, res);
+});
+router.get('/users/all', (req, res, err) => {
+  // res.json({ message: 'AAAAAAA' });
+  UserController.getAllUsers(req, res);
+});
 
 router.post('/upload', upload.single('image'), (req, res) => {
   const filedata = req.file;
@@ -90,22 +107,38 @@ router.post('/upload', upload.single('image'), (req, res) => {
   }
 });
 
-router.get('/posts', PostController.getAll);
+router.get('/posts', (req, res, err) => {
+  PostController.getAll(req, res);
+});
 // app.get('/posts/:id', PostController.getOne);
-router.get('/posts/:id', PostController.getPostsByUser);
-router.get('/posts/all/:userId', PostController.getPostsByFriends);
+router.get('/posts/:id', (req, res, err) => {
+  PostController.getPostsByUser(req, res);
+});
+router.get('/posts/all/:userId', (req, res, err) => {
+  PostController.getPostsByFriends(req, res);
+});
 router.post(
   '/posts',
   checkAuth,
   postCreateValidation,
   handleValidationErrors,
-  PostController.create
+  (req, res, err) => {
+    PostController.create(req, res);
+  }
 );
-router.post('/posts/:postId', checkAuth, PostController.changeLikes);
-router.delete('/posts/:id', checkAuth, PostController.remove);
+router.post('/posts/:postId', checkAuth, (req, res, err) => {
+  PostController.changeLikes(req, res);
+});
+router.delete('/posts/:id', checkAuth, (req, res, err) => {
+  PostController.remove(req, res);
+});
 
-router.post('/friends/:friendId', checkAuth, UserController.addFriend);
-router.delete('/friends/:friendId', checkAuth, UserController.removeFriend);
+router.post('/friends/:friendId', checkAuth, (req, res, err) => {
+  UserController.addFriend(req, res);
+});
+router.delete('/friends/:friendId', checkAuth, (req, res, err) => {
+  UserController.removeFriend(req, res);
+});
 
 // app.listen(process.env.PORT || 4444, err => {
 //   if (err) {
