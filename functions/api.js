@@ -1,18 +1,41 @@
 import express from 'express';
-// const express = require('express');
 import mongoose from 'mongoose';
-// const mongoose = require('mongoose');
-import multer from 'multer';
-// const multer = require('multer');
 import cors from 'cors';
-// const cors = require('cors');
-import fs from 'fs';
-// const fs = require('fs');
 
-// const serverless = require('serverless-http');
+import dotenv from 'dotenv';
+dotenv.config();
 import serverless from 'serverless-http';
 const router = express.Router();
 const app = express();
+import path from 'path';
+import multer from 'multer';
+
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_KEY,
+  api_secret: process.env.CLOUD_KEY_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'Images',
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, callback) => {
+    const ext = path.extname(file.originalname);
+    if (ext !== '.png' && ext !== '.jpg' && ext !== '.gif' && ext !== '.jpeg') {
+      return callback(new Error('Only images are allowed'));
+    }
+    callback(null, true);
+  },
+});
 
 import {
   registerValidation,
@@ -20,7 +43,11 @@ import {
   postCreateValidation,
 } from '../validations.js';
 
-import { checkAuth, handleValidationErrors } from '../utils/index.js';
+import {
+  checkAuth,
+  handleValidationErrors,
+  // cloudinary,
+} from '../utils/index.js';
 
 import { UserController, PostController } from '../controllers/index.js';
 
@@ -35,40 +62,14 @@ mongoose
     console.log('DB Error', err);
   });
 
-// const app = express();
-
-const storage = multer.diskStorage({
-  destination: (_, __, cb) => {
-    if (!fs.existsSync('uploads')) {
-      fs.mkdirSync('uploads');
-    }
-    cb(null, 'uploads');
-  },
-  filename: (_, file, cb) => {
-    cb(null, file.originalname);
-  },
-});
-
-const fileFilter = (req, file, cb) => {
-  if (
-    file.mimetype === 'image/png' ||
-    file.mimetype === 'image/jpg' ||
-    file.mimetype === 'image/jpeg'
-  ) {
-    cb(null, true);
-  } else {
-    cb(null, false);
-  }
-};
-const upload = multer({
-  storage,
-  fileFilter,
-});
-
 app.use(express.json());
 app.use(cors());
-app.use('/uploads', express.static('uploads'));
 
+router.post('/upload', upload.single('image'), async (req, res) => {
+  const filedata = req.file;
+  if (!filedata) res.status(403).json({ message: 'Неверный формат файла!' });
+  return res.json({ url: req.file.path });
+});
 router.post(
   '/auth/login',
   loginValidation,
@@ -99,22 +100,9 @@ router.get('/users/all', (req, res, err) => {
   UserController.getAllUsers(req, res);
 });
 
-// router.get('/users/all', UserController.getAllUsers);
-
-router.post('/upload', upload.single('image'), (req, res) => {
-  const filedata = req.file;
-  if (!filedata) res.status(403).json({ message: 'Неверный формат файла!' });
-  else {
-    res.json({
-      url: `/uploads/${req.file.originalname}`,
-    });
-  }
-});
-
 router.get('/posts/all', (req, res, err) => {
   PostController.getAll(req, res);
 });
-// app.get('/posts/:id', PostController.getOne);
 router.get('/posts/:id', (req, res, err) => {
   PostController.getPostsByUser(req, res);
 });
@@ -171,14 +159,6 @@ router.delete(
     UserController.removeFriend(req, res);
   }
 );
-
-// app.listen(process.env.PORT || 4444, err => {
-//   if (err) {
-//     return console.log(err);
-//   }
-
-//   console.log('Server OK');
-// });
 
 app.use('/.netlify/functions/api', router);
 module.exports.handler = serverless(app);
