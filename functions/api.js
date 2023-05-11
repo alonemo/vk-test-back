@@ -60,7 +60,6 @@ const fileFilter = (req, file, cb) => {
     cb(null, false);
   }
 };
-
 const upload = multer({
   storage,
   fileFilter,
@@ -73,15 +72,19 @@ app.use('/uploads', express.static('uploads'));
 router.post(
   '/auth/login',
   loginValidation,
-  handleValidationErrors,
+  (req, res, next) => {
+    handleValidationErrors(req, res, next);
+  },
   (req, res, err) => {
-    UserController.login(req,res);
+    UserController.login(req, res);
   }
 );
 router.post(
   '/auth/register',
   registerValidation,
-  handleValidationErrors,
+  (req, res, next) => {
+    handleValidationErrors(req, res, next);
+  },
   (req, res, err) => {
     UserController.register(req, res);
   }
@@ -93,9 +96,10 @@ router.get('/friends/:userId', (req, res, err) => {
   UserController.getFriends(req, res);
 });
 router.get('/users/all', (req, res, err) => {
-  // res.json({ message: 'AAAAAAA' });
   UserController.getAllUsers(req, res);
 });
+
+// router.get('/users/all', UserController.getAllUsers);
 
 router.post('/upload', upload.single('image'), (req, res) => {
   const filedata = req.file;
@@ -107,7 +111,7 @@ router.post('/upload', upload.single('image'), (req, res) => {
   }
 });
 
-router.get('/posts', (req, res, err) => {
+router.get('/posts/all', (req, res, err) => {
   PostController.getAll(req, res);
 });
 // app.get('/posts/:id', PostController.getOne);
@@ -119,26 +123,54 @@ router.get('/posts/all/:userId', (req, res, err) => {
 });
 router.post(
   '/posts',
-  checkAuth,
+  (req, res, next) => {
+    checkAuth(req, res, next);
+  },
   postCreateValidation,
-  handleValidationErrors,
+  (req, res, next) => {
+    handleValidationErrors(req, res, next);
+  },
   (req, res, err) => {
     PostController.create(req, res);
   }
 );
-router.post('/posts/:postId', checkAuth, (req, res, err) => {
-  PostController.changeLikes(req, res);
-});
-router.delete('/posts/:id', checkAuth, (req, res, err) => {
-  PostController.remove(req, res);
-});
+router.post(
+  '/posts/:postId',
+  (req, res, next) => {
+    checkAuth(req, res, next);
+  },
+  (req, res, err) => {
+    PostController.changeLikes(req, res);
+  }
+);
+router.delete(
+  '/posts/:id',
+  (req, res, next) => {
+    checkAuth(req, res, next);
+  },
+  (req, res, err) => {
+    PostController.remove(req, res);
+  }
+);
 
-router.post('/friends/:friendId', checkAuth, (req, res, err) => {
-  UserController.addFriend(req, res);
-});
-router.delete('/friends/:friendId', checkAuth, (req, res, err) => {
-  UserController.removeFriend(req, res);
-});
+router.post(
+  '/friends/:friendId',
+  (req, res, next) => {
+    checkAuth(req, res, next);
+  },
+  (req, res, err) => {
+    UserController.addFriend(req, res);
+  }
+);
+router.delete(
+  '/friends/:friendId',
+  (req, res, next) => {
+    checkAuth(req, res, next);
+  },
+  (req, res, err) => {
+    UserController.removeFriend(req, res);
+  }
+);
 
 // app.listen(process.env.PORT || 4444, err => {
 //   if (err) {

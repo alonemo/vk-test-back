@@ -235,7 +235,6 @@ export const getFriends = async (req, res) => {
 };
 
 export const getAllUsers = async (req, res) => {
-  console.log('aaaaaa');
   try {
     const users = await UserModel.find().exec();
     res.json(users);
